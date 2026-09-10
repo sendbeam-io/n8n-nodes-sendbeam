@@ -9,7 +9,7 @@ import type {
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
-import { sendBeamApiRequest, sendBeamApiRequestAllItems } from './GenericFunctions';
+import { sendBeamApiRequest, sendBeamApiRequestAllItems, unwrapResource } from './GenericFunctions';
 
 export class SendBeam implements INodeType {
 	description: INodeTypeDescription = {
@@ -326,7 +326,7 @@ export class SendBeam implements INodeType {
 					throw new NodeOperationError(this.getNode(), `Unknown resource: ${resource}`, { itemIndex: i });
 				}
 
-				const rows = Array.isArray(response) ? response : [response];
+				const rows = Array.isArray(response) ? response : [unwrapResource(response)];
 				out.push(
 					...rows.map((json) => ({ json, pairedItem: { item: i } })),
 				);

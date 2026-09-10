@@ -73,6 +73,26 @@ export async function sendBeamApiRequest(
 }
 
 /**
+ * Unwrap a single-resource envelope.
+ *
+ * SendBeam is not uniform about this, and n8n users feel it: POST /contacts and
+ * GET /contacts/{id} answer `{ contact: {...} }`, while POST /webhooks answers
+ * the webhook itself. Left alone, half the node's operations would need
+ * `$json.contact.id` in the next step and the other half `$json.id`.
+ *
+ * Only an object with exactly one key holding an object is unwrapped, so
+ * genuine multi-field answers — `{ ok, message_id }` from a send, or a list
+ * page with its pagination — are passed through untouched.
+ */
+export function unwrapResource(response: IDataObject): IDataObject {
+	const keys = Object.keys(response ?? {});
+	if (keys.length !== 1) return response;
+	const inner = response[keys[0]];
+	if (inner && typeof inner === 'object' && !Array.isArray(inner)) return inner as IDataObject;
+	return response;
+}
+
+/**
  * Fetch every page of a list endpoint.
  *
  * The page size parameter is `limit`, not `per_page` — `per_page` is silently
