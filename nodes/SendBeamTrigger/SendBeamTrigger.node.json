@@ -1,0 +1,10 @@
+{
+	"node": "n8n-nodes-sendbeam.sendBeamTrigger",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Marketing & Content", "Communication"],
+	"resources": {
+		"credentialDocumentation": [{ "url": "https://sendbeam.io/docs/api" }],
+		"primaryDocumentation": [{ "url": "https://sendbeam.io/docs/webhooks" }]
+	}
+}

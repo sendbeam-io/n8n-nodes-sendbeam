@@ -1,0 +1,52 @@
+{
+  "name": "n8n-nodes-sendbeam",
+  "version": "0.1.0",
+  "description": "Use SendBeam from n8n: create and update contacts, manage lists and tags, send email, and trigger workflows from SendBeam events.",
+  "keywords": [
+    "n8n-community-node-package",
+    "n8n",
+    "sendbeam",
+    "email",
+    "email-marketing",
+    "newsletter",
+    "transactional-email"
+  ],
+  "license": "MIT",
+  "homepage": "https://sendbeam.io",
+  "author": {
+    "name": "SendBeam",
+    "email": "hello@sendbeam.io",
+    "url": "https://sendbeam.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sendbeam-io/n8n-nodes-sendbeam.git"
+  },
+  "bugs": { "url": "https://github.com/sendbeam-io/n8n-nodes-sendbeam/issues" },
+  "engines": { "node": ">=20.19" },
+  "scripts": {
+    "build": "n8n-node build",
+    "dev": "n8n-node dev",
+    "lint": "n8n-node lint",
+    "lint:fix": "n8n-node lint --fix",
+    "release": "n8n-node release",
+    "prepublishOnly": "n8n-node prerelease"
+  },
+  "files": ["dist"],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": ["dist/credentials/SendBeamApi.credentials.js"],
+    "nodes": [
+      "dist/nodes/SendBeam/SendBeam.node.js",
+      "dist/nodes/SendBeamTrigger/SendBeamTrigger.node.js"
+    ],
+    "strict": true
+  },
+  "devDependencies": {
+    "@n8n/node-cli": "^0.23.0",
+    "eslint": "9.32.0",
+    "prettier": "3.6.2",
+    "typescript": "5.9.2"
+  },
+  "peerDependencies": { "n8n-workflow": "*" }
+}
