@@ -288,7 +288,7 @@ export class SendBeam implements INodeType {
 							response = await sendBeamApiRequestAllItems.call(this, '/contacts', 'contacts');
 						} else {
 							const limit = this.getNodeParameter('limit', i) as number;
-							const page = await sendBeamApiRequest.call(this, 'GET', '/contacts', {}, { per_page: limit });
+							const page = await sendBeamApiRequest.call(this, 'GET', '/contacts', {}, { limit });
 							response = ((page?.contacts as IDataObject[]) ?? []).slice(0, limit);
 						}
 					}

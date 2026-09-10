@@ -72,7 +72,16 @@ export async function sendBeamApiRequest(
 	}
 }
 
-/** Fetch every page of a list endpoint. SendBeam pages with `page`/`per_page`. */
+/**
+ * Fetch every page of a list endpoint.
+ *
+ * The page size parameter is `limit`, not `per_page` — `per_page` is silently
+ * ignored and you get the default 50 back. That matters more than it looks: the
+ * first version asked for `per_page: 100` and then treated "fewer than 100
+ * returned" as the last page, so every call stopped after 50 rows and reported
+ * success. Paging is driven off the `pagination` envelope the API returns
+ * instead of inferring the end from a short page.
+ */
 export async function sendBeamApiRequestAllItems(
 	this: IExecuteFunctions | ILoadOptionsFunctions,
 	resource: string,
@@ -80,23 +89,35 @@ export async function sendBeamApiRequestAllItems(
 	qs: IDataObject = {},
 ): Promise<IDataObject[]> {
 	const out: IDataObject[] = [];
+	const pageSize = 100;
 	let page = 1;
-	// A hard ceiling so a paging bug on either side cannot spin forever inside
-	// someone's workflow.
+	let totalPages = 1;
+	// A ceiling so a paging bug on either side cannot spin forever in someone's
+	// workflow.
 	const maxPages = 200;
-	while (page <= maxPages) {
+
+	do {
 		const response = await sendBeamApiRequest.call(this, 'GET', resource, {}, {
 			...qs,
 			page,
-			per_page: 100,
+			limit: pageSize,
 		});
 		const batch = (response?.[collection] ?? []) as IDataObject[];
 		out.push(...batch);
-		if (batch.length < 100) return out;
+
+		const pagination = response?.pagination as IDataObject | undefined;
+		totalPages = Number(pagination?.total_pages ?? 1) || 1;
+		// No envelope: fall back to the short-page rule, which is right when the
+		// page size is the one we actually asked for.
+		if (!pagination && batch.length < pageSize) return out;
 		page += 1;
+	} while (page <= totalPages && page <= maxPages);
+
+	if (page > maxPages) {
+		throw new NodeOperationError(
+			this.getNode(),
+			`Stopped after ${maxPages} pages of ${collection}. Narrow the query, or fetch a fixed number of items.`,
+		);
 	}
-	throw new NodeOperationError(
-		this.getNode(),
-		`Stopped after ${maxPages} pages of ${collection}. Narrow the query, or fetch a fixed number of items.`,
-	);
+	return out;
 }

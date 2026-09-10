@@ -17,7 +17,16 @@ and install `n8n-nodes-sendbeam`.
 You need a SendBeam API key: **Settings → API Keys** inside the workspace you
 want to connect. A key belongs to one workspace and carries that workspace's
 permissions, so only workspace admins can create one. Give it only the
-permissions the workflow needs.
+permissions the workflow needs:
+
+| Scope | Needed for |
+| --- | --- |
+| `contacts:read` | The credential test, and every contact lookup |
+| `contacts:write` | Creating, updating, deleting contacts; adding and removing tags |
+| `lists:read` / `lists:write` | The list dropdown; adding and removing members |
+| `tags:read` / `tags:write` | The tag dropdown; adding and removing tags |
+| `campaigns:write` | Sending email |
+| `webhooks:write` | The trigger node, which registers its own endpoint |
 
 Reads are unmetered on every plan. Writes are metered per hour per workspace —
 120 on Free, 600 on Starter, unlimited on Pro and Business — and answer `429`

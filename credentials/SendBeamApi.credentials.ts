@@ -24,7 +24,7 @@ export class SendBeamApi implements ICredentialType {
 			default: '',
 			required: true,
 			description:
-				'Create one in SendBeam under Settings → API Keys. A key belongs to one workspace and carries that workspace\'s permissions, so only workspace admins can create one.',
+				'Create one in SendBeam under Settings → API Keys — workspace admins only. Grant the scopes the workflow needs: contacts:read at minimum (the credential test uses it), plus contacts:write, lists:write, tags:write or campaigns:write for the matching operations, and webhooks:write for the trigger node.',
 		},
 		{
 			displayName: 'Base URL',
@@ -44,13 +44,23 @@ export class SendBeamApi implements ICredentialType {
 		},
 	};
 
-	// A GET, deliberately. Reads are unmetered on every plan, so testing a
-	// credential never eats into the workspace's hourly write allowance.
+	/**
+	 * Reads are unmetered on every plan, so testing a credential never spends
+	 * the workspace's hourly write allowance.
+	 *
+	 * It tests /contacts specifically. Every endpoint is scope-gated — there is
+	 * no universally readable one — so the test has to pick a scope, and this is
+	 * the right one: every operation this node offers touches a contact, so a
+	 * key without contacts:read cannot do anything useful here anyway. Testing
+	 * /lists instead told anyone with a least-privilege contacts-only key that
+	 * their perfectly good key had failed.
+	 */
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL: '={{$credentials.baseUrl}}',
-			url: '/api/v1/lists',
+			url: '/api/v1/contacts',
 			method: 'GET',
+			qs: { per_page: 1 },
 		},
 	};
 }
