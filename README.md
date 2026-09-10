@@ -55,7 +55,11 @@ removes it again.
 
 ## Compatibility
 
-Tested against n8n 1.x. Requires Node.js 20.19 or later.
+Tested against n8n 1.x.
+
+Requires **Node.js 24 or later** — that is n8n's own floor, not ours. On Node 22
+n8n refuses to start with `Your Node.js version is currently not supported`,
+which is easy to mistake for a problem with the node.
 
 ## Resources
 

@@ -22,8 +22,12 @@
     "type": "git",
     "url": "git+https://github.com/sendbeam-io/n8n-nodes-sendbeam.git"
   },
-  "bugs": { "url": "https://github.com/sendbeam-io/n8n-nodes-sendbeam/issues" },
-  "engines": { "node": ">=20.19" },
+  "bugs": {
+    "url": "https://github.com/sendbeam-io/n8n-nodes-sendbeam/issues"
+  },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "build": "n8n-node build",
     "dev": "n8n-node dev",
@@ -32,10 +36,14 @@
     "release": "n8n-node release",
     "prepublishOnly": "n8n-node prerelease"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "n8n": {
     "n8nNodesApiVersion": 1,
-    "credentials": ["dist/credentials/SendBeamApi.credentials.js"],
+    "credentials": [
+      "dist/credentials/SendBeamApi.credentials.js"
+    ],
     "nodes": [
       "dist/nodes/SendBeam/SendBeam.node.js",
       "dist/nodes/SendBeamTrigger/SendBeamTrigger.node.js"
@@ -48,5 +56,7 @@
     "prettier": "3.6.2",
     "typescript": "5.9.2"
   },
-  "peerDependencies": { "n8n-workflow": "*" }
+  "peerDependencies": {
+    "n8n-workflow": "*"
+  }
 }
