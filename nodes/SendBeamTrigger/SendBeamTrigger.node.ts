@@ -6,43 +6,55 @@ import type {
 	IWebhookFunctions,
 	IWebhookResponseData,
 } from 'n8n-workflow';
-import { NodeConnectionTypes } from 'n8n-workflow';
+import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
 import { sendBeamApiRequest } from '../SendBeam/GenericFunctions';
 
 /**
- * Every event SendBeam can deliver. Kept in the order the API documents them
- * so the dropdown reads as contact lifecycle, then delivery, then account.
+ * Every event SendBeam can deliver, named the way people describe them rather
+ * than by their wire names. The value stays the wire name so an exported
+ * workflow still reads plainly.
  */
 const EVENTS = [
-	'contact.created',
-	'contact.updated',
-	'contact.unsubscribed',
-	'contact.resubscribed',
-	'contact.bounced',
-	'contact.complained',
-	'contact.deleted',
-	'contact.tag_added',
-	'contact.tag_removed',
-	'contact.list_joined',
-	'contact.list_left',
-	'email.sent',
-	'email.delivered',
-	'email.opened',
-	'email.clicked',
-	'email.bounced',
-	'email.complained',
-	'campaign.sent',
-	'form.submitted',
-	'domain.verified',
-	'domain.failed',
-] as const;
+	{ name: 'Campaign Sent', value: 'campaign.sent', description: 'A campaign was sent' },
+	{ name: 'Contact Bounced', value: 'contact.bounced', description: "A contact's address bounced" },
+	{ name: 'Contact Complained', value: 'contact.complained', description: 'A contact reported an email as spam' },
+	{ name: 'Contact Created', value: 'contact.created', description: 'A contact was added' },
+	{ name: 'Contact Deleted', value: 'contact.deleted', description: 'A contact was deleted' },
+	{ name: 'Contact Joined List', value: 'contact.list_joined', description: 'A contact joined a list' },
+	{ name: 'Contact Left List', value: 'contact.list_left', description: 'A contact left a list' },
+	{ name: 'Contact Resubscribed', value: 'contact.resubscribed', description: 'An unsubscribed contact subscribed again' },
+	{ name: 'Contact Tag Added', value: 'contact.tag_added', description: 'A tag was added to a contact' },
+	{ name: 'Contact Tag Removed', value: 'contact.tag_removed', description: 'A tag was removed from a contact' },
+	{ name: 'Contact Unsubscribed', value: 'contact.unsubscribed', description: 'A contact unsubscribed' },
+	{ name: 'Contact Updated', value: 'contact.updated', description: "A contact's details changed" },
+	{ name: 'Domain Failed', value: 'domain.failed', description: 'A sending domain failed verification' },
+	{ name: 'Domain Verified', value: 'domain.verified', description: 'A sending domain was verified' },
+	{ name: 'Email Bounced', value: 'email.bounced', description: 'An email bounced' },
+	{ name: 'Email Clicked', value: 'email.clicked', description: 'A link in an email was clicked' },
+	{ name: 'Email Complained', value: 'email.complained', description: 'An email was reported as spam' },
+	{ name: 'Email Delivered', value: 'email.delivered', description: 'An email was delivered' },
+	{ name: 'Email Opened', value: 'email.opened', description: 'An email was opened' },
+	{ name: 'Email Sent', value: 'email.sent', description: 'An email was sent' },
+	{ name: 'Form Submitted', value: 'form.submitted', description: 'A form was submitted' },
+];
+
+/**
+ * SendBeam only delivers to a public https address and refuses anything else.
+ * n8n's default webhook URL on a laptop is http://localhost:5678, so this is the
+ * first thing almost everyone trying the trigger locally runs into.
+ */
+function isDeliverable(url: string): boolean {
+	if (!url.startsWith('https://')) return false;
+	const host = new URL(url).hostname;
+	return !/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0|\[::1\])/.test(host);
+}
 
 export class SendBeamTrigger implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'SendBeam Trigger',
 		name: 'sendBeamTrigger',
-		icon: 'file:../SendBeam/sendbeam.svg',
+		icon: 'file:sendbeam.svg',
 		group: ['trigger'],
 		version: 1,
 		description: 'Starts a workflow when something happens in SendBeam',
@@ -61,13 +73,20 @@ export class SendBeamTrigger implements INodeType {
 		],
 		properties: [
 			{
+				displayName:
+					'SendBeam can only reach n8n on a public https address. On your own computer, set n8n\'s WEBHOOK_URL to a tunnel address before activating this workflow.',
+				name: 'notice',
+				type: 'notice',
+				default: '',
+			},
+			{
 				displayName: 'Events',
 				name: 'events',
 				type: 'multiOptions',
 				required: true,
 				default: [],
 				description: 'The SendBeam events that start this workflow',
-				options: EVENTS.map((value) => ({ name: value, value })),
+				options: EVENTS,
 			},
 		],
 	};
@@ -92,7 +111,16 @@ export class SendBeamTrigger implements INodeType {
 			},
 
 			async create(this: IHookFunctions): Promise<boolean> {
-				const webhookUrl = this.getNodeWebhookUrl('default');
+				const webhookUrl = this.getNodeWebhookUrl('default') as string;
+				if (!isDeliverable(webhookUrl)) {
+					throw new NodeOperationError(
+						this.getNode(),
+						'SendBeam cannot reach this n8n instance',
+						{
+							description: `The webhook address is ${webhookUrl}. SendBeam only delivers to a public https address. Start a tunnel (for example cloudflared or ngrok), set n8n's WEBHOOK_URL to its https address, restart n8n and activate the workflow again.`,
+						},
+					);
+				}
 				const events = this.getNodeParameter('events') as string[];
 				const response = await sendBeamApiRequest.call(this, 'POST', '/webhooks', {
 					url: webhookUrl,

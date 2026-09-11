@@ -21,16 +21,19 @@ permissions the workflow needs:
 
 | Scope | Needed for |
 | --- | --- |
-| `contacts:read` | The credential test, and every contact lookup |
-| `contacts:write` | Creating, updating, deleting contacts; adding and removing tags |
-| `lists:read` / `lists:write` | The list dropdown; adding and removing members |
-| `tags:read` / `tags:write` | The tag dropdown; adding and removing tags |
-| `campaigns:write` | Sending email |
+| `contacts:read` | The credential test, and finding contacts by email |
+| `contacts:write` | Creating, updating, unsubscribing and deleting contacts |
+| `lists:read` / `lists:write` | Choosing a list; adding and removing members; creating lists |
+| `tags:read` / `tags:write` | Choosing a tag; adding and removing tags; creating tags |
+| `campaigns:read` / `campaigns:write` | Finding and reporting on campaigns; creating, sending, duplicating and deleting them; sending email to a contact |
+| `automations:read` / `automations:write` | Choosing an automation; starting one for a contact |
+| `segments:read` | Choosing a segment as a campaign audience |
+| `transactional:send` | Sending transactional email to any address |
 | `webhooks:write` | The trigger node, which registers its own endpoint |
 
-Reads are unmetered on every plan. Writes are metered per hour per workspace —
-120 on Free, 600 on Starter, unlimited on Pro and Business — and answer `429`
-with a `Retry-After` when the hour is spent, rather than failing permanently.
+Reads are never metered. Writes are metered per hour per workspace, and a
+spent allowance answers `429` with a `Retry-After` rather than failing
+permanently.
 
 ## Operations
 
@@ -38,24 +41,35 @@ with a `Retry-After` when the hour is spent, rather than failing permanently.
 
 | Resource | Operations |
 | --- | --- |
-| Contact | Create or update, Get, Get many, Update, Delete |
-| Email | Send to a contact |
-| List | Add contact, Remove contact, Get many |
-| Tag | Add to contact, Remove from contact, Get many |
+| Automation | Start for contact, Get many |
+| Campaign | Create, Get, Get many, Get report, Send (now or scheduled), Duplicate (optionally to non-openers), Delete |
+| Contact | Create or update, Get, Get many, Update, Unsubscribe, Delete, Add to list, Remove from list, Add tag, Remove tag |
+| Email | Send to contact, Send transactional |
+| List | Create, Get many |
+| Tag | Create, Get many |
 
-Email is sent to a *contact*, not to a raw address, so consent and unsubscribe
-state are always honoured — an unsubscribed contact cannot be mailed by
-accident from a workflow.
+Contacts are picked **by email** by default — the address a workflow already
+has — or from a searchable list, or by ID. Tags can be picked by name, and
+adding a tag that does not exist yet creates it. Adding a tag or list
+membership a contact already has succeeds, so a workflow can be re-run safely.
 
-**SendBeam Trigger** starts a workflow on any of 21 events, including
-`contact.created`, `contact.unsubscribed`, `contact.tag_added`,
-`form.submitted`, `email.bounced`, `email.clicked` and `campaign.sent`.
-Activating the node registers a webhook endpoint in SendBeam; deactivating it
-removes it again.
+**Start for contact** works on automations that are active and have an API
+trigger in SendBeam, so the automation's author decides whether outside tools
+may enrol people.
+
+**Send to contact** only mails subscribed contacts, so consent and unsubscribe
+state are always honoured. **Send transactional** is for mail a person asked
+for — receipts, password resets, booking reminders — and goes to any address.
+
+**SendBeam Trigger** starts a workflow on any of 21 events, such as Contact
+Created, Contact Unsubscribed, Form Submitted, Email Clicked and Campaign Sent.
+Activating the workflow registers a webhook endpoint in SendBeam; deactivating
+it removes it again. SendBeam only delivers to a public `https://` address, so
+an n8n running on your own computer needs its `WEBHOOK_URL` pointed at a tunnel.
 
 ## Compatibility
 
-Tested against n8n 1.x.
+Tested against n8n 2.38.
 
 Requires **Node.js 24 or later** — that is n8n's own floor, not ours. On Node 22
 n8n refuses to start with `Your Node.js version is currently not supported`,

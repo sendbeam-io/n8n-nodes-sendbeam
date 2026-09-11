@@ -68,8 +68,13 @@ export async function sendBeamApiRequest(
 					'The API key does not carry the permission this operation needs. Check the key\'s scopes under Settings → API Keys.',
 			});
 		}
-		throw new NodeApiError(this.getNode(), apiError);
+		throw new NodeApiError(this.getNode(), apiError, message ? { message } : {});
 	}
+}
+
+/** Whether a request failed because the thing it asked for is already true. */
+export function isConflict(error: unknown): boolean {
+	return String((error as NodeApiError)?.httpCode) === '409';
 }
 
 /**
@@ -140,4 +145,85 @@ export async function sendBeamApiRequestAllItems(
 		);
 	}
 	return out;
+}
+
+/**
+ * Find the contact with exactly this email address.
+ *
+ * The API has no lookup by email. `q` is a case-insensitive substring match
+ * over email and names, so asking for `jo@example.com` also returns
+ * `mojo@example.com`; the exact match is picked out here. SendBeam stores
+ * addresses lowercased, so a lowercase comparison is exact.
+ */
+export async function findContactByEmail(
+	this: IExecuteFunctions | ILoadOptionsFunctions,
+	email: string,
+): Promise<IDataObject | undefined> {
+	const wanted = email.trim().toLowerCase();
+	const matches = await sendBeamApiRequestAllItems.call(this, '/contacts', 'contacts', { q: wanted });
+	return matches.find((c) => String(c.email).toLowerCase() === wanted);
+}
+
+type Locator = { mode: string; value: string };
+
+function readLocator(this: IExecuteFunctions, name: string, itemIndex: number): Locator {
+	const locator = this.getNodeParameter(name, itemIndex) as Locator;
+	const value = String(locator?.value ?? '').trim();
+	if (!value) {
+		throw new NodeOperationError(this.getNode(), `Choose a ${name}`, { itemIndex });
+	}
+	return { mode: locator.mode, value };
+}
+
+/**
+ * The contact an operation acts on. Workflows nearly always have an email
+ * address to hand rather than a SendBeam ID, so "By Email" is the default mode
+ * and is resolved here.
+ */
+export async function getContactId(this: IExecuteFunctions, itemIndex: number): Promise<string> {
+	const { mode, value } = readLocator.call(this, 'contact', itemIndex);
+	if (mode !== 'email') return value;
+
+	const contact = await findContactByEmail.call(this, value);
+	if (!contact) {
+		throw new NodeOperationError(this.getNode(), `No contact with the email ${value}`, {
+			itemIndex,
+			description:
+				'Nothing in this SendBeam workspace has that address. To add them, use Contact → Create or Update first.',
+		});
+	}
+	return contact.id as string;
+}
+
+/** The ID behind a "From List" or "By ID" picker. */
+export function getResourceId(this: IExecuteFunctions, name: string, itemIndex: number): string {
+	return readLocator.call(this, name, itemIndex).value;
+}
+
+export function getListId(this: IExecuteFunctions, itemIndex: number): string {
+	return readLocator.call(this, 'list', itemIndex).value;
+}
+
+/**
+ * The tag an operation acts on. "By Name" is how people think about tags, so a
+ * name is matched without regard to case, and — when adding — created if the
+ * workspace does not have it yet.
+ */
+export async function getTagId(
+	this: IExecuteFunctions,
+	itemIndex: number,
+	createIfMissing: boolean,
+): Promise<string> {
+	const { mode, value } = readLocator.call(this, 'tag', itemIndex);
+	if (mode !== 'name') return value;
+
+	const tags = await sendBeamApiRequestAllItems.call(this, '/tags', 'tags');
+	const found = tags.find((t) => String(t.name).toLowerCase() === value.toLowerCase());
+	if (found) return found.id as string;
+
+	if (!createIfMissing) {
+		throw new NodeOperationError(this.getNode(), `No tag called "${value}"`, { itemIndex });
+	}
+	const created = unwrapResource(await sendBeamApiRequest.call(this, 'POST', '/tags', { name: value }));
+	return created.id as string;
 }
