@@ -75,6 +75,18 @@ Requires **Node.js 24 or later** — that is n8n's own floor, not ours. On Node 
 n8n refuses to start with `Your Node.js version is currently not supported`,
 which is easy to mistake for a problem with the node.
 
+## Development
+
+```
+npm install
+npm test
+```
+
+`npm test` builds the node and runs every action and the trigger against a
+stand-in for n8n, then checks each request against SendBeam's published API
+description at https://sendbeam.io/openapi.json, so it needs network access.
+It runs on every push, and a release is not published unless it passes.
+
 ## Resources
 
 * [SendBeam API reference](https://sendbeam.io/docs/api)

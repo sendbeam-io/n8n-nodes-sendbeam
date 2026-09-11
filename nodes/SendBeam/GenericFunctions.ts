@@ -5,9 +5,42 @@ import type {
 	ILoadOptionsFunctions,
 	IHttpRequestMethods,
 	IHttpRequestOptions,
+	INode,
 	JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError, NodeOperationError } from 'n8n-workflow';
+
+/**
+ * Put SendBeam's own words on a failed request.
+ *
+ * By the time a node sees a failure, n8n's request helper has already made it a
+ * NodeApiError with a generic message ("Your request is invalid or could not be
+ * processed by the service") and the status in `httpCode`. Wrapping that in a
+ * new NodeApiError hands back the same object and silently drops the message
+ * passed in, so the message is set on the error itself. SendBeam answers every
+ * failure with `{ "error": "..." }`, written for a person to read.
+ */
+export function explainError(node: INode, error: unknown): NodeApiError {
+	const apiError = error instanceof NodeApiError ? error : new NodeApiError(node, error as JsonObject);
+	const status = String(apiError.httpCode ?? '');
+	const data = (apiError.context?.data ?? {}) as IDataObject;
+	const said = typeof data.error === 'string' ? data.error : '';
+
+	if (status === '429') {
+		apiError.message = 'SendBeam rate limit reached';
+		apiError.description =
+			said ||
+			'This workspace has spent its API writes for the hour. The allowance refills hourly, and a higher plan lifts it. Reads are never counted.';
+	} else if (status === '403') {
+		apiError.message = 'SendBeam refused this request';
+		apiError.description =
+			said ||
+			"The API key does not carry the permission this operation needs. Check the key's scopes under Settings → API Keys.";
+	} else if (said) {
+		apiError.message = said;
+	}
+	return apiError;
+}
 
 /**
  * Every call to SendBeam goes through here.
@@ -43,32 +76,7 @@ export async function sendBeamApiRequest(
 			options,
 		)) as IDataObject;
 	} catch (error) {
-		const apiError = error as JsonObject;
-		// Turn the two answers people actually hit into something that says what
-		// to do, rather than surfacing a bare status. Everything else keeps
-		// SendBeam's own message, which is already written for a human.
-		const status = apiError.statusCode ?? apiError.status;
-		const message = String(
-			((apiError.error as IDataObject)?.error as string) ?? (error as Error).message ?? '',
-		);
-
-		if (status === 429) {
-			throw new NodeApiError(this.getNode(), apiError, {
-				message: 'SendBeam rate limit reached',
-				description:
-					message ||
-					'This workspace has spent its API writes for the hour. The allowance refills hourly, and a higher plan lifts it. Reads are never counted.',
-			});
-		}
-		if (status === 403) {
-			throw new NodeApiError(this.getNode(), apiError, {
-				message: 'SendBeam refused this request',
-				description:
-					message ||
-					'The API key does not carry the permission this operation needs. Check the key\'s scopes under Settings → API Keys.',
-			});
-		}
-		throw new NodeApiError(this.getNode(), apiError, message ? { message } : {});
+		throw explainError(this.getNode(), error);
 	}
 }
 
