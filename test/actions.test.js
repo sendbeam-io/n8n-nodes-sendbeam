@@ -539,9 +539,9 @@ describe('Errors', () => {
 		});
 
 	test('429 says the rate limit was reached, in SendBeam\'s words', async () => {
-		await assert.rejects(get(httpError(429, 'Hourly API write limit reached.')), (error) => {
+		await assert.rejects(get(httpError(429, 'Too many requests.')), (error) => {
 			assert.equal(error.message, 'SendBeam rate limit reached');
-			assert.equal(error.description, 'Hourly API write limit reached.');
+			assert.equal(error.description, 'Too many requests.');
 			assert.equal(error.httpCode, '429');
 			return true;
 		});

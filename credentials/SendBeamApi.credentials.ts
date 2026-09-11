@@ -24,14 +24,7 @@ export class SendBeamApi implements ICredentialType {
 			default: '',
 			required: true,
 			description:
-				'Create one in SendBeam under Settings → API Keys — workspace admins only. Grant the scopes the workflow needs: contacts:read at minimum (the credential test uses it), plus contacts:write, lists:write, tags:write or campaigns:write for the matching operations, and webhooks:write for the trigger node.',
-		},
-		{
-			displayName: 'Base URL',
-			name: 'baseUrl',
-			type: 'string',
-			default: 'https://sendbeam.io',
-			description: 'Change this only if you run SendBeam somewhere other than sendbeam.io',
+				'Create one in SendBeam under Settings → API Keys and give it the permissions the workflow needs: contacts:read for the credential test, the read and write permissions for the contacts, lists, tags, campaigns or automations it uses, and webhooks:read plus webhooks:write for the trigger node.',
 		},
 	];
 
@@ -45,19 +38,12 @@ export class SendBeamApi implements ICredentialType {
 	};
 
 	/**
-	 * Reads are unmetered on every plan, so testing a credential never spends
-	 * the workspace's hourly write allowance.
-	 *
-	 * It tests /contacts specifically. Every endpoint is scope-gated — there is
-	 * no universally readable one — so the test has to pick a scope, and this is
-	 * the right one: every operation this node offers touches a contact, so a
-	 * key without contacts:read cannot do anything useful here anyway. Testing
-	 * /lists instead told anyone with a least-privilege contacts-only key that
-	 * their perfectly good key had failed.
+	 * Tests against /contacts: every operation this node offers touches a
+	 * contact, so a key that cannot read contacts cannot do anything useful here.
 	 */
 	test: ICredentialTestRequest = {
 		request: {
-			baseURL: '={{$credentials.baseUrl}}',
+			baseURL: 'https://sendbeam.io',
 			url: '/api/v1/contacts',
 			method: 'GET',
 			qs: { per_page: 1 },

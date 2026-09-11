@@ -40,14 +40,13 @@ const EVENTS = [
 ];
 
 /**
- * SendBeam only delivers to a public https address and refuses anything else.
- * n8n's default webhook URL on a laptop is http://localhost:5678, so this is the
- * first thing almost everyone trying the trigger locally runs into.
+ * n8n's default webhook URL on a laptop is http://localhost:5678, which SendBeam
+ * cannot reach, so this is the first thing almost everyone trying the trigger
+ * locally runs into. Catching it here gives a clear message instead.
  */
 function isDeliverable(url: string): boolean {
 	if (!url.startsWith('https://')) return false;
-	const host = new URL(url).hostname;
-	return !/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0|\[::1\])/.test(host);
+	return !/^(localhost|127\.|\[::1\])/.test(new URL(url).hostname);
 }
 
 export class SendBeamTrigger implements INodeType {
@@ -74,7 +73,7 @@ export class SendBeamTrigger implements INodeType {
 		properties: [
 			{
 				displayName:
-					'SendBeam can only reach n8n on a public https address. On your own computer, set n8n\'s WEBHOOK_URL to a tunnel address before activating this workflow.',
+					'SendBeam sends events to n8n over https. On your own computer, set n8n\'s WEBHOOK_URL to a tunnel address before publishing this workflow.',
 				name: 'notice',
 				type: 'notice',
 				default: '',
@@ -117,7 +116,7 @@ export class SendBeamTrigger implements INodeType {
 						this.getNode(),
 						'SendBeam cannot reach this n8n instance',
 						{
-							description: `The webhook address is ${webhookUrl}. SendBeam only delivers to a public https address. Start a tunnel (for example cloudflared or ngrok), set n8n's WEBHOOK_URL to its https address, restart n8n and activate the workflow again.`,
+							description: `The webhook address is ${webhookUrl}. SendBeam has to reach n8n over https. Start a tunnel (for example cloudflared or ngrok), set n8n's WEBHOOK_URL to its https address, restart n8n and publish the workflow again.`,
 						},
 					);
 				}

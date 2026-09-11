@@ -9,17 +9,16 @@ is a workspace with its own lists, forms and sending domain.
 
 ## Installation
 
-Follow the [community nodes installation guide](https://docs.n8n.io/integrations/community-nodes/installation/)
-and install `n8n-nodes-sendbeam`.
+In n8n, go to **Settings → Community nodes → Install** and enter
+`n8n-nodes-sendbeam`, or follow the
+[community nodes installation guide](https://docs.n8n.io/integrations/community-nodes/installation/).
 
 ## Credentials
 
-You need a SendBeam API key: **Settings → API Keys** inside the workspace you
-want to connect. A key belongs to one workspace and carries that workspace's
-permissions, so only workspace admins can create one. Give it only the
-permissions the workflow needs:
+Create an API key in SendBeam under **Settings → API Keys**, in the workspace
+you want to connect, and give it the permissions the workflow needs:
 
-| Scope | Needed for |
+| Permission | Needed for |
 | --- | --- |
 | `contacts:read` | The credential test, and finding contacts by email |
 | `contacts:write` | Creating, updating, unsubscribing and deleting contacts |
@@ -29,11 +28,7 @@ permissions the workflow needs:
 | `automations:read` / `automations:write` | Choosing an automation; starting one for a contact |
 | `segments:read` | Choosing a segment as a campaign audience |
 | `transactional:send` | Sending transactional email to any address |
-| `webhooks:write` | The trigger node, which registers its own endpoint |
-
-Reads are never metered. Writes are metered per hour per workspace, and a
-spent allowance answers `429` with a `Retry-After` rather than failing
-permanently.
+| `webhooks:read` / `webhooks:write` | The trigger node, which sets up and removes its own endpoint |
 
 ## Operations
 
@@ -53,26 +48,28 @@ has — or from a searchable list, or by ID. Tags can be picked by name, and
 adding a tag that does not exist yet creates it. Adding a tag or list
 membership a contact already has succeeds, so a workflow can be re-run safely.
 
-**Start for contact** works on automations that are active and have an API
-trigger in SendBeam, so the automation's author decides whether outside tools
-may enrol people.
+**Start for contact** works on active automations that have an API trigger in
+SendBeam, for contacts who are subscribed and not already in that automation.
 
 **Send to contact** only mails subscribed contacts, so consent and unsubscribe
 state are always honoured. **Send transactional** is for mail a person asked
-for — receipts, password resets, booking reminders — and goes to any address.
+for — receipts, password resets, booking reminders. It goes to any address,
+including people who unsubscribed from marketing, but not to addresses that
+bounced or marked mail as spam.
 
 **SendBeam Trigger** starts a workflow on any of 21 events, such as Contact
 Created, Contact Unsubscribed, Form Submitted, Email Clicked and Campaign Sent.
-Activating the workflow registers a webhook endpoint in SendBeam; deactivating
-it removes it again. SendBeam only delivers to a public `https://` address, so
-an n8n running on your own computer needs its `WEBHOOK_URL` pointed at a tunnel.
+Publishing the workflow sets up a webhook endpoint in SendBeam; unpublishing it
+removes it again. SendBeam sends events to n8n's webhook address over `https://`,
+so an n8n running on your own computer needs its `WEBHOOK_URL` pointed at a
+tunnel.
 
 ## Compatibility
 
 Tested against n8n 2.38.
 
 Requires **Node.js 24 or later** — that is n8n's own floor, not ours. On Node 22
-n8n refuses to start with `Your Node.js version is currently not supported`,
+n8n refuses to start with `Your Node.js version … is currently not supported by n8n`,
 which is easy to mistake for a problem with the node.
 
 ## Development
@@ -90,7 +87,7 @@ It runs on every push, and a release is not published unless it passes.
 ## Resources
 
 * [SendBeam API reference](https://sendbeam.io/docs/api)
-* [SendBeam webhooks](https://sendbeam.io/docs/webhooks)
+* [SendBeam webhooks](https://sendbeam.io/docs/api/webhooks)
 * [n8n community nodes documentation](https://docs.n8n.io/integrations/community-nodes/)
 
 ## Licence

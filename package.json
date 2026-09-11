@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-sendbeam",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Use SendBeam from n8n: create and update contacts, manage lists and tags, send email, and trigger workflows from SendBeam events.",
   "keywords": [
     "n8n-community-node-package",

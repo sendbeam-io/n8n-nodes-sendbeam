@@ -30,7 +30,7 @@ export function explainError(node: INode, error: unknown): NodeApiError {
 		apiError.message = 'SendBeam rate limit reached';
 		apiError.description =
 			said ||
-			'This workspace has spent its API writes for the hour. The allowance refills hourly, and a higher plan lifts it. Reads are never counted.';
+			'SendBeam is not accepting more requests from this workspace right now. Wait a while, then try again.';
 	} else if (status === '403') {
 		apiError.message = 'SendBeam refused this request';
 		apiError.description =
@@ -56,14 +56,11 @@ export async function sendBeamApiRequest(
 	body: IDataObject = {},
 	qs: IDataObject = {},
 ): Promise<IDataObject> {
-	const credentials = await this.getCredentials('sendBeamApi');
-	const baseUrl = ((credentials.baseUrl as string) || 'https://sendbeam.io').replace(/\/+$/, '');
-
 	const options: IHttpRequestOptions = {
 		method,
 		body,
 		qs,
-		url: `${baseUrl}/api/v1${resource}`,
+		url: `https://sendbeam.io/api/v1${resource}`,
 		json: true,
 	};
 	if (!Object.keys(body).length) delete options.body;

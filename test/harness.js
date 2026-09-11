@@ -60,7 +60,7 @@ function context(node, options = {}) {
 	const ctx = {
 		getInputData: () => items,
 		getNode: () => NODE,
-		getCredentials: async () => ({ apiKey: 'test-key', baseUrl: BASE }),
+		getCredentials: async () => ({ apiKey: 'test-key' }),
 		continueOnFail: () => continueOnFail,
 		getNodeParameter(name, itemIndex, fallback, opts) {
 			let value = name in params ? params[name] : fallback !== undefined ? fallback : defaults[name];

@@ -42,7 +42,6 @@ describe('Registering with SendBeam', () => {
 		'http://localhost:5678/webhook/abc/webhook',
 		'https://localhost/webhook/abc/webhook',
 		'https://127.0.0.1/webhook/abc/webhook',
-		'https://192.168.1.20/webhook/abc/webhook',
 		'http://n8n.example.com/webhook/abc/webhook',
 	]) {
 		test(`An address SendBeam cannot reach is explained, not sent: ${url}`, async () => {
