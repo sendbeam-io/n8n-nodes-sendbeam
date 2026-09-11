@@ -134,9 +134,20 @@ export class SendBeamTrigger implements INodeType {
 
 			async delete(this: IHookFunctions): Promise<boolean> {
 				const data = this.getWorkflowStaticData('node');
-				if (!data.webhookId) return true;
+				let webhookId = data.webhookId as string | undefined;
 				try {
-					await sendBeamApiRequest.call(this, 'DELETE', `/webhooks/${data.webhookId}`);
+					// The ID saved in create() is not always there by the time n8n
+					// calls delete(): a test listener was left registered in SendBeam
+					// that way, receiving every event and failing every delivery. Find
+					// the endpoint by its URL instead, as checkExists() does.
+					if (!webhookId) {
+						const webhookUrl = this.getNodeWebhookUrl('default');
+						const response = await sendBeamApiRequest.call(this, 'GET', '/webhooks');
+						webhookId = ((response?.webhooks as IDataObject[]) ?? []).find(
+							(w) => w.url === webhookUrl,
+						)?.id as string | undefined;
+					}
+					if (webhookId) await sendBeamApiRequest.call(this, 'DELETE', `/webhooks/${webhookId}`);
 				} catch {
 					// Already gone, or the key lost access. Either way the endpoint
 					// is not ours to worry about any more, and throwing here would
