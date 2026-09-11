@@ -9,8 +9,9 @@ import type {
 	INodePropertyOptions,
 	INodeType,
 	INodeTypeDescription,
+	JsonObject,
 } from 'n8n-workflow';
-import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
+import { NodeApiError, NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
 import {
 	findContactByEmail,
@@ -193,7 +194,7 @@ export class SendBeam implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'SendBeam',
 		name: 'sendBeam',
-		icon: 'file:sendbeam-logo.svg',
+		icon: { light: 'file:sendbeam-logo.svg', dark: 'file:sendbeam-logo.dark.svg' },
 		group: ['output'],
 		version: 1,
 		// n8n ends an expression at the first "}}", which a nested object literal
@@ -930,7 +931,10 @@ export class SendBeam implements INodeType {
 					out.push({ json: { error: (error as Error).message }, pairedItem: { item: i } });
 					continue;
 				}
-				throw error;
+				// n8n hands back an error that is already one of its own as it is,
+				// so SendBeam's message survives; anything else gets the item index.
+				if (error instanceof NodeApiError) throw new NodeApiError(this.getNode(), error as unknown as JsonObject);
+				throw new NodeOperationError(this.getNode(), error as Error, { itemIndex: i });
 			}
 		}
 
@@ -990,7 +994,8 @@ async function addTag(this: IExecuteFunctions, contactId: string, tagId: string)
 		// Already tagged is the outcome the workflow asked for. Failing would
 		// break every re-run of a workflow over the same people.
 		if (isConflict(error)) return { contact_id: contactId, tag_id: tagId, already_tagged: true };
-		throw error;
+		// Already a NodeApiError with SendBeam's message, which n8n hands back as it is.
+		throw new NodeApiError(this.getNode(), error as JsonObject);
 	}
 }
 
@@ -1001,7 +1006,7 @@ async function addToList(this: IExecuteFunctions, contactId: string, listId: str
 		if (isConflict(error)) {
 			return { list_id: listId, contact_id: contactId, membership: 'confirmed', already_member: true };
 		}
-		throw error;
+		throw new NodeApiError(this.getNode(), error as JsonObject);
 	}
 }
 

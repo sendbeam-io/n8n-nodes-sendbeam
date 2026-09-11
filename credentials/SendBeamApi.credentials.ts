@@ -11,7 +11,10 @@ export class SendBeamApi implements ICredentialType {
 
 	displayName = 'SendBeam API';
 
-	icon: Icon = 'file:../nodes/SendBeam/sendbeam-logo.svg';
+	icon: Icon = {
+		light: 'file:../nodes/SendBeam/sendbeam-logo.svg',
+		dark: 'file:../nodes/SendBeam/sendbeam-logo.dark.svg',
+	};
 
 	documentationUrl = 'https://sendbeam.io/docs/api';
 
