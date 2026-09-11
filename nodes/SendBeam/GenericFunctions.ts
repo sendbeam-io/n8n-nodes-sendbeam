@@ -170,7 +170,13 @@ function readLocator(this: IExecuteFunctions, name: string, itemIndex: number): 
 	const locator = this.getNodeParameter(name, itemIndex) as Locator;
 	const value = String(locator?.value ?? '').trim();
 	if (!value) {
-		throw new NodeOperationError(this.getNode(), `Choose a ${name}`, { itemIndex });
+		// Most often an expression that found nothing in this item — a field
+		// name that exists in a test event but not in the real one — so say that
+		// rather than implying the field was left blank.
+		throw new NodeOperationError(this.getNode(), `The ${name} is empty`, {
+			itemIndex,
+			description: `If the ${name} comes from an expression, it found no value in this item. Open the input data and check the field name.`,
+		});
 	}
 	return { mode: locator.mode, value };
 }
