@@ -53,11 +53,11 @@ export class SendBeamTrigger implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'SendBeam Trigger',
 		name: 'sendBeamTrigger',
-		icon: 'file:sendbeam.svg',
+		icon: { light: 'file:sendbeam.svg', dark: 'file:sendbeam.dark.svg' },
 		group: ['trigger'],
 		version: 1,
+		subtitle: '={{ ($parameter["events"] || []).join(", ") }}',
 		description: 'Starts a workflow when something happens in SendBeam',
-		usableAsTool: true,
 		defaults: { name: 'SendBeam Trigger' },
 		inputs: [],
 		outputs: [NodeConnectionTypes.Main],
@@ -147,10 +147,13 @@ export class SendBeamTrigger implements INodeType {
 						)?.id as string | undefined;
 					}
 					if (webhookId) await sendBeamApiRequest.call(this, 'DELETE', `/webhooks/${webhookId}`);
-				} catch {
-					// Already gone, or the key lost access. Either way the endpoint
-					// is not ours to worry about any more, and throwing here would
-					// leave the node stuck in a state it cannot be deactivated from.
+				} catch (error) {
+					// Already gone, or the key can no longer reach it. Throwing here would
+					// leave the node stuck in a state it cannot be unpublished from, so
+					// say what happened and carry on.
+					this.logger.warn(
+						`SendBeam Trigger could not remove its webhook endpoint: ${(error as Error).message}`,
+					);
 				}
 				delete data.webhookId;
 				return true;

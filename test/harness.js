@@ -61,6 +61,13 @@ function context(node, options = {}) {
 		getInputData: () => items,
 		getNode: () => NODE,
 		getCredentials: async () => ({ apiKey: 'test-key' }),
+		logger: {
+			warnings: (options.warnings ??= []),
+			warn(message) { this.warnings.push(message); },
+			debug() {},
+			info() {},
+			error() {},
+		},
 		continueOnFail: () => continueOnFail,
 		getNodeParameter(name, itemIndex, fallback, opts) {
 			let value = name in params ? params[name] : fallback !== undefined ? fallback : defaults[name];

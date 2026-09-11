@@ -64,6 +64,33 @@ removes it again. SendBeam sends events to n8n's webhook address over `https://`
 so an n8n running on your own computer needs its `WEBHOOK_URL` pointed at a
 tunnel.
 
+## Example workflows
+
+**Add new customers to a list.** A Stripe Trigger (or Shopify, or a form tool)
+fires when someone buys → **SendBeam: Contact → Create or update**, with the
+email and name mapped from the trigger → **SendBeam: Contact → Add to list**,
+picking the list by name. Re-running it for an existing customer changes
+nothing, so retries are safe.
+
+**Tag people by what they did.** A Typeform or Tally trigger → **SendBeam:
+Contact → Add tag**, with the contact picked by the email from the form and the
+tag typed as a name, such as `webinar-2026`. The tag is created the first time
+it is used.
+
+**Start an onboarding sequence from your app.** Your app calls an n8n Webhook
+node when someone signs up → **SendBeam: Contact → Create or update** →
+**SendBeam: Automation → Start for contact**, choosing an active automation
+whose trigger is set to API in SendBeam.
+
+**Tell your team about unsubscribes and bounces.** **SendBeam Trigger** with the
+events Contact Unsubscribed and Contact Bounced → a Slack or email node that
+posts `{{ $json.data.contact.email }}` and `{{ $json.event }}`. Every event
+carries `event`, `created_at` and a `data` object; contact events put the
+contact under `data.contact`.
+
+**Send a receipt.** An order webhook → **SendBeam: Email → Send transactional**,
+with the customer's email in To and the order details in the HTML.
+
 ## Compatibility
 
 Tested against n8n 2.38.

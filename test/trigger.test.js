@@ -106,6 +106,9 @@ describe('Unregistering', () => {
 			routes: { 'DELETE /webhooks/:id': httpError(404, 'Webhook not found') },
 		});
 		assert.equal(await t.delete(), true);
+		// Not silent: n8n's log says why the endpoint was left alone.
+		assert.equal(t.ctx.logger.warnings.length, 1);
+		assert.match(t.ctx.logger.warnings[0], /could not remove its webhook endpoint: Webhook not found/);
 	});
 });
 
