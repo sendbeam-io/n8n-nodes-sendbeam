@@ -193,7 +193,7 @@ export class SendBeam implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'SendBeam',
 		name: 'sendBeam',
-		icon: 'file:sendbeam.svg',
+		icon: 'file:sendbeam-logo.svg',
 		group: ['output'],
 		version: 1,
 		// n8n ends an expression at the first "}}", which a nested object literal
