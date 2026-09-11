@@ -1,0 +1,21 @@
+# The node ships no runtime dependencies, so what can go stale is the build
+# and lint tooling and the actions the workflows pin.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      tooling:
+        patterns: ["*"]
+    commit-message:
+      prefix: "deps"
+    labels: ["dependencies"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"
+    labels: ["ci"]

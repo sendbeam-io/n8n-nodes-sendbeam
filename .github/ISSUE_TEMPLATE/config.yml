@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question about SendBeam itself
+    url: https://sendbeam.io/contact
+    about: Your account, plans, billing, deliverability or the API — anything that is not this node.
+  - name: SendBeam API reference
+    url: https://sendbeam.io/docs/api
+    about: Every endpoint the node calls, and the permissions each one needs.
+  - name: Report a security problem
+    url: https://github.com/sendbeam-io/n8n-nodes-sendbeam/blob/main/SECURITY.md
+    about: Please do not open a public issue for anything exploitable.

@@ -1,0 +1,40 @@
+name: Idea or request
+description: Something the SendBeam node or trigger should do that it does not.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The node is deliberately focused, and that is a feature of it. That does not mean no — it means the
+        case has to be made. The most persuasive thing you can write here is what you are actually trying to do.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The workflow, not the solution. What are you doing today instead?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What did you have in mind?
+      description: A new operation, a new field, a new trigger event? If you are not sure, the problem is the useful half.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part would it touch?
+      options:
+        - Automations
+        - Campaigns
+        - Contacts
+        - Email
+        - Lists or tags
+        - The trigger
+        - Not sure
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you post
+      options:
+        - label: I have checked the [README](https://github.com/sendbeam-io/n8n-nodes-sendbeam#operations) in case it already does this.
+        - label: I have searched the existing issues.

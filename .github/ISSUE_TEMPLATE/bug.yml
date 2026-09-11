@@ -1,0 +1,78 @@
+name: Bug report
+description: Something in the SendBeam node or trigger does not work as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting this. Most reports turn out to depend on the n8n version, how n8n is run, or the
+        permissions on the API key, so the fields below are what let us reproduce it rather than guess at it.
+
+        **Never paste an API key.** If it is exploitable, please do not open an issue — see
+        [SECURITY.md](../blob/main/SECURITY.md).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to reproduce it
+      description: The shortest path from a new workflow to the problem.
+      placeholder: |
+        1. Add SendBeam → Contact → Create or update
+        2. …
+        3. …
+    validations:
+      required: true
+  - type: dropdown
+    id: node
+    attributes:
+      label: Which node?
+      options:
+        - SendBeam (an action)
+        - SendBeam Trigger
+        - The credential
+    validations:
+      required: true
+  - type: input
+    id: operation
+    attributes:
+      label: Resource and operation
+      placeholder: "Contact → Add tag, or the trigger event"
+  - type: input
+    id: node-version
+    attributes:
+      label: n8n-nodes-sendbeam version
+      placeholder: "1.0.1 — Settings → Community nodes"
+    validations:
+      required: true
+  - type: input
+    id: n8n-version
+    attributes:
+      label: n8n version
+      placeholder: "2.38.6 — Settings → About n8n"
+    validations:
+      required: true
+  - type: dropdown
+    id: hosting
+    attributes:
+      label: How is n8n run?
+      options:
+        - n8n Cloud
+        - Self-hosted with Docker
+        - Self-hosted with npm
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: errors
+    attributes:
+      label: The error, if there is one
+      description: >
+        The message and details from the failed execution. Paste the text rather than a screenshot where you
+        can, and remove anything private first.
+      render: text
