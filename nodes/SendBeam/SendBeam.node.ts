@@ -454,6 +454,7 @@ export class SendBeam implements INodeType {
 						options: [
 							{ name: 'Cancelled', value: 'cancelled' },
 							{ name: 'Draft', value: 'draft' },
+							{ name: 'Paused', value: 'paused' },
 							{ name: 'Scheduled', value: 'scheduled' },
 							{ name: 'Sending', value: 'sending' },
 							{ name: 'Sent', value: 'sent' },

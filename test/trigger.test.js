@@ -127,8 +127,8 @@ describe('Receiving events', () => {
 
 	test('Every event has a readable name and a distinct value', () => {
 		const events = new SendBeamTrigger().description.properties.find((p) => p.name === 'events').options;
-		assert.equal(events.length, 21);
-		assert.equal(new Set(events.map((e) => e.value)).size, 21);
+		assert.equal(events.length, 23);
+		assert.equal(new Set(events.map((e) => e.value)).size, 23);
 		for (const e of events) assert.match(e.name, /^[A-Z][a-z]+( [A-Z][a-z]+)+$/, `${e.value} → "${e.name}"`);
 	});
 });

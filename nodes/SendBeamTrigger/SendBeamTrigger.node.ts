@@ -16,6 +16,8 @@ import { sendBeamApiRequest } from '../SendBeam/GenericFunctions';
  * workflow still reads plainly.
  */
 const EVENTS = [
+	{ name: 'Campaign Paused', value: 'campaign.paused', description: 'A campaign that was sending was paused' },
+	{ name: 'Campaign Resumed', value: 'campaign.resumed', description: 'A paused campaign started sending again' },
 	{ name: 'Campaign Sent', value: 'campaign.sent', description: 'A campaign was sent' },
 	{ name: 'Contact Bounced', value: 'contact.bounced', description: "A contact's address bounced" },
 	{ name: 'Contact Complained', value: 'contact.complained', description: 'A contact reported an email as spam' },

@@ -57,8 +57,9 @@ for — receipts, password resets, booking reminders. It goes to any address,
 including people who unsubscribed from marketing, but not to addresses that
 bounced or marked mail as spam.
 
-**SendBeam Trigger** starts a workflow on any of 21 events, such as Contact
-Created, Contact Unsubscribed, Form Submitted, Email Clicked and Campaign Sent.
+**SendBeam Trigger** starts a workflow on any of 23 events, such as Contact
+Created, Contact Unsubscribed, Form Submitted, Email Clicked, Campaign Sent and
+Campaign Paused.
 Publishing the workflow sets up a webhook endpoint in SendBeam; unpublishing it
 removes it again. SendBeam sends events to n8n's webhook address over `https://`,
 so an n8n running on your own computer needs its `WEBHOOK_URL` pointed at a
